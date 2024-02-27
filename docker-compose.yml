@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  price_alert_api:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: /app/api-entrypoint.sh
+    ports:
+      - "8000:8000"
+  worker:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: /app/worker-entrypoint.sh
+    depends_on:
+      - price_alert_api
+      - redis
+  redis:
+    restart: unless-stopped
+    image: redis:7.0.5-alpine 
+    expose:
+        - 6379
+  celery-beat:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: /app/celery-beat-entrypoint.sh
+    depends_on:
+      - redis
